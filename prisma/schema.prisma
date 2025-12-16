@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Vehicle {
+  id          String   @id @default(uuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  vin         String   @unique
+  stockNumber String   @unique
+  year        Int
+  make        String
+  model       String
+  trim        String?
+  bodyType    String?
+  
+  cost        Decimal  @db.Decimal(10, 2)
+  listPrice   Decimal  @db.Decimal(10, 2)
+  
+  mileage     Int
+  color       String
+  status      VehicleStatus @default(IN_STOCK)
+  images      String[] @default([]) 
+  
+  kbbValue    Decimal? @db.Decimal(10, 2)
+  mmrValue    Decimal? @db.Decimal(10, 2)
+}
+
+model Customer {
+  id        String   @id @default(uuid())
+  firstName String
+  lastName  String
+  email     String
+  phone     String
+  deals     Deal[]
+}
+
+model Deal {
+  id          String   @id @default(uuid())
+  status      DealStatus @default(PENDING)
+  customer    Customer @relation(fields: [customerId], references: [id])
+  customerId  String
+  vehicleId   String 
+  
+  salePrice   Decimal
+  downPayment Decimal
+  termMonths  Int
+  apr         Decimal
+}
+
+enum VehicleStatus {
+  IN_STOCK
+  PENDING
+  SOLD
+  WHOLESALE
+}
+
+enum DealStatus {
+  PENDING
+  FUNDED
+  DEAD
+}
