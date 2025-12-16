@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { getInventory, getCustomers } from "./actions";
 import DashboardView from "./components/DashboardView";
 

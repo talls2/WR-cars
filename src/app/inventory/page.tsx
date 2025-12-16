@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { getInventory } from "../actions";
 import Link from "next/link";
 
@@ -37,7 +38,7 @@ export default async function PublicInventory() {
               </div>
             </div>
           </div>
-        ))}
+        ))} 
       </div>
     </div>
   );
