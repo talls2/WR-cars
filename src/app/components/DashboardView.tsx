@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { Car, DollarSign, Activity, Users, Printer, Save, X, Calculator, FileText } from "lucide-react";
 import AddVinForm from "./AddVinForm";
-import { updateVehicle, addCustomer } from "../actions";
+import ImageUpload from "./ImageUpload"; // Integration with your existing component
+import { updateVehicle, addCustomer, addImageToVehicle } from "../actions";
 
 // Helper: Loan Payment Calculator
 function calculatePayment(price: number, rate: number, term: number, down: number) {
@@ -88,8 +89,20 @@ export default function DashboardView({ inventory, customers }: { inventory: any
                   {inventory.map((car) => (
                     <tr key={car.id} className="hover:bg-slate-50">
                       <td className="p-4 font-medium">
-                        <div className="text-slate-900">{car.year} {car.make} {car.model}</div>
-                        <div className="text-xs text-slate-500 font-mono">{car.vin}</div>
+                        <div className="flex items-center gap-3">
+                          {/* Thumbnail Preview */}
+                          <div className="w-12 h-12 bg-slate-200 rounded overflow-hidden flex-shrink-0">
+                             {car.images && car.images[0] ? (
+                               <img src={car.images[0]} className="w-full h-full object-cover" alt="Car" />
+                             ) : (
+                               <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs">No Pic</div>
+                             )}
+                          </div>
+                          <div>
+                            <div className="text-slate-900 font-bold">{car.year} {car.make} {car.model}</div>
+                            <div className="text-xs text-slate-500 font-mono">{car.vin}</div>
+                          </div>
+                        </div>
                       </td>
                       <td className="p-4 font-bold text-green-700">${car.listPrice.toLocaleString()}</td>
                       <td className="p-4">{car.mileage.toLocaleString()}</td>
@@ -151,7 +164,6 @@ export default function DashboardView({ inventory, customers }: { inventory: any
               </header>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Calculator Inputs */}
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                   <div className="flex items-center gap-2 mb-6 text-slate-800">
                     <Calculator className="w-5 h-5" />
@@ -180,7 +192,6 @@ export default function DashboardView({ inventory, customers }: { inventory: any
                   </div>
                 </div>
 
-                {/* Results Card */}
                 <div className="bg-slate-900 text-white p-6 rounded-xl shadow-lg flex flex-col justify-between">
                   <div>
                     <h4 className="text-slate-400 uppercase text-xs font-bold tracking-wider mb-1">Estimated Monthly Payment</h4>
@@ -235,16 +246,32 @@ export default function DashboardView({ inventory, customers }: { inventory: any
           </div>
         )}
         
-        {/* --- MODAL: EDIT VEHICLE --- */}
+        {/* --- MODAL: EDIT VEHICLE (NOW WITH IMAGES) --- */}
         {editingCar && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
-            <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-lg">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm overflow-y-auto py-10">
+            <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-lg my-auto">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-2xl font-bold">Edit Vehicle</h3>
                 <button onClick={() => setEditingCar(null)}><X /></button>
               </div>
               
               <div className="space-y-4">
+                {/* --- IMAGE UPLOAD --- */}
+                <div className="border-b pb-4 mb-4">
+                  <label className="text-sm font-bold text-slate-700 block mb-2">Vehicle Photos</label>
+                  <ImageUpload 
+                    vehicleId={editingCar.id} 
+                    currentImages={editingCar.images || []} 
+                    onUploadComplete={async (url: string) => {
+                       await addImageToVehicle(editingCar.id, url);
+                       setEditingCar({
+                         ...editingCar,
+                         images: [...(editingCar.images || []), url]
+                       });
+                    }} 
+                  />
+                </div>
+
                 <div>
                   <label className="text-sm font-bold text-slate-700">Retail Price ($)</label>
                   <input type="number" className="w-full border p-3 rounded-lg text-lg font-mono" 
